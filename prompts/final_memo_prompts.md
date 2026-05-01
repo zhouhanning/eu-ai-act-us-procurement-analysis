@@ -1,45 +1,69 @@
-# LLM and Analysis Prompts — Final Memo (Authentic)
+# Prompt Notes for the Final Memo
 
-Course rubric requires that where large language models (LLMs) are used, **prompts are attached**. This project’s **proof-of-concept regression and keyword-based GRI** are implemented in **`code/analysis_final_memo_authentic.py`** without an LLM. The prompts below document (1) optional **next-step** LLM use for a richer political-risk text index, and (2) the **memo drafting** assistant thread (high level) used to align the write-up with the assignment.
+This project uses two separate prompt records.
+
+- `prompts/final_memo_prompts.md` documents the prompt logic that belongs to the final memo itself: how LLM assistance could be used in a later extension of the analysis, and how prompt use is framed for reproducibility.
+- `prompts/prompt_recorded.md` records the prompts used during the actual course workflow, including drafting, revision, formatting, and follow-up requests made while preparing the assignment.
+
+The core empirical pipeline in `code/analysis_final_memo_authentic.py` does **not** use an LLM to generate the reported numerical results. Data ingestion, cleaning, panel construction, keyword-based GRI calculation, and regression output all come from local code execution.
 
 ---
 
-## 1. Optional prototype: LLM-assisted “GRI v2” (future work)
+## 1. Role of LLM use in this project
 
-If you replace keyword hits with structured labels, a reproducible prompt template is:
+LLM use in this project serves two limited purposes.
+
+First, it supports memo drafting and revision during the course workflow. That record is preserved in `prompts/prompt_recorded.md`.
+
+Second, it provides a documented template for a possible future extension of the text analysis. The memo currently uses a transparent keyword-based geopolitical rhetoric index (GRI v1). If the project is extended beyond this baseline, an LLM-assisted classifier could be used to build a richer GRI v2. That future-facing prompt logic is documented below.
+
+---
+
+## 2. Optional future extension: LLM-assisted GRI v2
+
+A more context-sensitive version of the geopolitical rhetoric index could replace simple keyword matching with structured labels. One reproducible prompt template would be:
 
 ```
-You are a senior defense-industry analyst. Given the US federal contract or subaward
-description below, answer in JSON only with keys:
-{"mission_class": one of ["defense_cloud","intel_analytics","biometric_surveillance","civil_admin","other"],
+You are a senior defense-industry analyst. Given the U.S. federal contract or
+subaward description below, return JSON only with the following keys:
+{"mission_class": one of ["defense_cloud","intel_analytics",
+"biometric_surveillance","civil_admin","other"],
  "geopolitical_salience": integer 0-3,
- "surveillance_semantics": boolean}.
+ "surveillance_semantics": boolean}
 
 Description:
 """{{transaction_description}}"""
 ```
 
-Batch this over all lines, cache results by `contract_transaction_unique_key` or equivalent, then aggregate **geopolitical_salience** or **surveillance_semantics** rate by (firm, quarter). This addresses **polysemy** (“security” in IT vs national security) that weakens keyword GRI v1.
+If used, this prompt would be applied to transaction descriptions one record at a time, with outputs cached by `contract_transaction_unique_key` or an equivalent transaction identifier. The coded outputs could then be aggregated to the firm--quarter level to create a richer text measure than GRI v1.
 
-**Model governance:** Fix model version, temperature `0`, and retain raw JSON outputs alongside code hashes for audit.
+The motivation for this extension is straightforward: simple keyword matching can confuse ordinary IT-security language with national-security or defense-related content. A structured classifier would help reduce that ambiguity while keeping the coding logic explicit.
 
----
+**Suggested governance rules for a future GRI v2 workflow:**
 
-## 2. Memo revision prompt (course rubric alignment)
-
-Prompt used to align **`Final_Memo_Authentic.md`** with the assignment (paraphrased):
-
-```
-Revise the final memo so it explicitly states the political risk question
-(political/social factor → economic outcome); summarizes existing approaches
-in the literature or policy practice; states their limits; presents our design
-as a prototype that addresses those limits; retains preliminary empirical
-results as proof-of-concept; adds next steps; and references attached code and
-prompt files.
-```
+- fix the model version;
+- set temperature to `0`;
+- retain raw JSON outputs;
+- store the prompt text alongside code hashes;
+- validate a sample of labels by hand before aggregation.
 
 ---
 
-## 3. No LLM on raw federal data
+## 3. Prompt use during memo preparation
 
-For compliance and reproducibility, **Personally Identifiable Information** in extracts was not sent to external APIs. All quoted obligation figures and regression outputs come from **local execution** of `analysis_final_memo_authentic.py` on the **`/data`** CSV files.
+The prompts that were actually used while preparing the assignment are documented in `prompts/prompt_recorded.md`. That file includes:
+
+- the main drafting prompt for the memo;
+- follow-up prompts used to align the draft with the course requirements;
+- prompts related to equation formatting and LaTeX conversion;
+- a note explaining that some prompts had to be reconstructed after an application reload.
+
+This separation is intentional. `prompt_recorded.md` is the assignment workflow record, while this file explains how prompt use fits into the logic of the final memo.
+
+---
+
+## 4. No LLM use in the reported empirical results
+
+All quoted obligation figures, descriptive summaries, and regression outputs in the memo come from local execution of `code/analysis_final_memo_authentic.py` on the bundled `data` files. In the current pipeline, no LLM is applied to raw federal transaction data.
+
+This means the reported quantitative results are reproducible from the local code and source files alone. Any future LLM-assisted extension should be treated as an additional layer of text classification rather than as part of the current empirical baseline.
