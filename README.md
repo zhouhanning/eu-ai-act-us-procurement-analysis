@@ -101,8 +101,8 @@ This project implements a transparent, audit-friendly empirical pipeline:
 │   └── (procurement extracts)
 ├── prompts/
 │   └── final_memo_prompts.md
-├── docs/
-│   └── Final_Memo_Authentic.pdf
+├── Final_Memo_Authentic.pdf
+│    
 └── README.md
 ```
 
